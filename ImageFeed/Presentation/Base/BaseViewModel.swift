@@ -12,7 +12,7 @@ import Combine
 
 protocol MVIContract {
     associatedtype IFIntent: enumDescribable
-    associatedtype IFState: CustomStringConvertible
+    associatedtype IFState: CustomStringConvertible & Withable
     associatedtype IFEffect: enumDescribable
     
     var isLoading: Bool { get }
@@ -24,14 +24,14 @@ protocol enumDescribable: CustomStringConvertible {}
 
 extension enumDescribable {
     var description: String {
-        return "\(Self.self).\(String(describing: self))"
+        return "냥냥이!"
     }
 }
 
 // MARK: - 2. Base Class (@Observable + IF Naming)
 @Observable
 class BaseViewModel<IFIntent, IFState, IFEffect>: MVIContract
-where IFIntent: enumDescribable, IFState: CustomStringConvertible, IFEffect: enumDescribable {
+where IFIntent: enumDescribable, IFState: CustomStringConvertible & Withable , IFEffect: enumDescribable {
     
     private(set) var state: IFState
     
@@ -55,7 +55,7 @@ where IFIntent: enumDescribable, IFState: CustomStringConvertible, IFEffect: enu
     }
 
     func trigger(_ intent: IFIntent) {
-        logger.debug("➡️ [INTENT]: \(intent.description)")
+        logger.debug("[\(String(describing: type(of: self)))] ➡️ [INTENT]: \(intent.description)")
         handleIntent(intent)
     }
     
@@ -65,11 +65,11 @@ where IFIntent: enumDescribable, IFState: CustomStringConvertible, IFEffect: enu
 
     func updateState(_ newState: IFState) {
         self.state = newState
-        logger.debug("[STATE]: \(newState.description)")
+        logger.debug("[\(String(describing: type(of: self)))] ➡️ [STATE]: \(newState.description)")
     }
 
     func postEffect(_ effect: IFEffect) {
-        logger.debug("[EFFECT]: \(effect.description)")
+        logger.debug("[\(String(describing: type(of: self)))] ➡️ [EFFECT]: \(effect.description)")
         effectSubject.send(effect)
     }
 

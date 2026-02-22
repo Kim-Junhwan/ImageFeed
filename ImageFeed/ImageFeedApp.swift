@@ -9,9 +9,12 @@ import SwiftUI
 
 @main
 struct ImageFeedApp: App {
+    
+    private let diContainer = DIContainer()
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            diContainer.makeImageFeedView()
         }
     }
 }

@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct IFImage {
+struct IFImage: Identifiable, Withable {
     let id: String
     let url: URL
     let thumbnailUrl: URL
@@ -16,5 +16,5 @@ struct IFImage {
     let author: String
     let createdAt: Date
     let likesCount: Int
-    let isLiked: Bool
+    var isLiked: Bool
 }
