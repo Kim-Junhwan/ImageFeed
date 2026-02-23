@@ -75,8 +75,6 @@ final class ImageLoader: ObservableObject {
         
         do {
             let data = try await imageDataRepository.loadImageData(url: url)
-            
-            // 이미지 디코딩을 백그라운드에서 (60fps 유지)
             let uiImage = await Task.detached(priority: .userInitiated) {
                 UIImage(data: data)
             }.value

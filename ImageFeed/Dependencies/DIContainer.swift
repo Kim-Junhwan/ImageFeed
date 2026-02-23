@@ -9,18 +9,20 @@ import Foundation
 
 final class DIContainer {
     // Singletons
-    private lazy var apiService = UnsplashAPIService()
-    private(set) lazy var imageDataRepository: ImageDataRepository = ImageDataRepositoryImpl()
+    private let apiService: UnsplashAPIService
+    private let imageDataRepository: ImageDataRepository
+    private let imageRepository: ImageRepository
     
-    // Repository
-    private lazy var imageRepository: ImageRepository = ImageRepositoryImpl(
-        apiService: apiService
-    )
+    init() {
+        let apiService = UnsplashAPIService()
+        self.apiService = apiService
+        self.imageDataRepository = ImageDataRepositoryImpl()
+        self.imageRepository = ImageRepositoryImpl(apiService: apiService)
+        self.fetchImagesUseCase = FetchImageUseCase(imageRepository: self.imageRepository)
+    }
     
     // UseCase
-    private lazy var fetchImagesUseCase = FetchImageUseCase(
-        imageRepository: imageRepository
-    )
+    private let fetchImagesUseCase: FetchImageUseCase
     
     // View Factory
     func makeImageFeedView() -> ImageFeedView {
