@@ -31,15 +31,10 @@ struct ImageDTO: Decodable {
     struct User: Decodable {
         let name: String
     }
-    
-    enum CodingKeys: String, CodingKey {
-        case id, urls, width, height, user, likes
-        case createdAt = "created_at"
-    }
 }
 
 extension ImageDTO {
-    func toEntity() -> IFImage? {
+    nonisolated func toEntity() -> IFImage? {
         guard let url = URL(string: urls.full), let thumbUrl = URL(string: urls.thumb) else {
             return nil
         }
@@ -89,7 +84,9 @@ final class UnsplashAPIService {
         }
 
         do {
-            let images = try JSONDecoder().decode([ImageDTO].self, from: data)
+            let decoder = JSONDecoder()
+            decoder.keyDecodingStrategy = .convertFromSnakeCase
+            let images = try decoder.decode([ImageDTO].self, from: data)
             return images
         } catch {
             throw APIError.decodingFailed

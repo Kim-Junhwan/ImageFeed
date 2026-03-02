@@ -72,7 +72,11 @@ final class ImageFeedViewModel: BaseViewModel<ImageFeedIntent, ImageFeedState, I
             if fetchImages.isEmpty {
                 innerState.canLoadMore = false
             } else {
-                updateState(state.with { $0.images.append(contentsOf: fetchImages) })
+                let existingIds = Set(state.images.map { $0.id })
+                let uniqueImages = fetchImages.filter { !existingIds.contains($0.id) }
+                if !uniqueImages.isEmpty {
+                    updateState(state.with { $0.images.append(contentsOf: uniqueImages) })
+                }
             }
         } catch {
             postEffect(.error(message: error.localizedDescription))

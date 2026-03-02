@@ -7,10 +7,17 @@
 
 import Foundation
 
+extension ISO8601DateFormatter {
+    static let shared: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        return formatter
+    }()
+}
+
 extension String {
+    
     func toDate() -> Date {
-        let dateFormatter = ISO8601DateFormatter()
-        guard let date = dateFormatter.date(from: self) else { return Date() }
+        guard let date = ISO8601DateFormatter.shared.date(from: self) else { return Date() }
         return date
     }
 }

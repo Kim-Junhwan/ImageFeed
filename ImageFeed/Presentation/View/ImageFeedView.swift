@@ -12,6 +12,8 @@ struct ImageFeedView: View {
     @State private var imageDataRepository: ImageDataRepository
     @State private var errorMessage: String? = nil
     
+    @State private var items: [Color] = []
+    
     init(
         viewModel: ImageFeedViewModel,
         imageDataRepository: ImageDataRepository
@@ -25,11 +27,8 @@ struct ImageFeedView: View {
             ScrollView {
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
                     ForEach(viewModel.state.images) { image in
-                        ImageFeedCell(
-                            image: image,
-                            imageDataRepository: imageDataRepository,
-                            onLikeTap: { }
-                        )
+                        Rectangle()
+                            .fill(.red)
                         .onAppear {
                             // 마지막 이미지 도달 시 다음 페이지 로딩
                             if image.id == viewModel.state.images.last?.id {
@@ -40,10 +39,7 @@ struct ImageFeedView: View {
                 }
                 .padding(.horizontal, 8)
 
-                if viewModel.isLoading {
-                    ProgressView()
-                        .padding()
-                }
+                LoadingIndicatorView(viewModel: viewModel)
             }
             .navigationTitle("Image Feed")
             .refreshable {
@@ -70,6 +66,18 @@ struct ImageFeedView: View {
     }
 }
 
+// MARK: - LoadingIndicatorView
+private struct LoadingIndicatorView: View {
+    let viewModel: ImageFeedViewModel
+
+    var body: some View {
+        if viewModel.isLoading {
+            ProgressView()
+                .padding()
+        }
+    }
+}
+
 // MARK: - ImageFeedCell
 struct ImageFeedCell: View {
     let image: IFImage
@@ -81,7 +89,8 @@ struct ImageFeedCell: View {
             // 이미지
             CachedAsyncImage(
                 url: image.thumbnailUrl,
-                imageDataRepository: imageDataRepository
+                imageDataRepository: imageDataRepository,
+                targetSize: CGSize(width: 200, height: 160) // 셀 실제 표시 크기(pt)
             )
             .aspectRatio(contentMode: .fill)
             .frame(height: 160)
@@ -121,3 +130,5 @@ struct ImageFeedCell: View {
 //#Preview {
 //    ImageFeedView(viewModel: <#T##ImageFeedViewModel#>, imageDataRepository: <#T##any ImageDataRepository#>)
 //}
+
+

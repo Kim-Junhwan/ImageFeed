@@ -14,7 +14,9 @@ struct ImageFeedApp: App {
     
     var body: some Scene {
         WindowGroup {
-            diContainer.makeImageFeedView()
+            diContainer.makeImageFeedView().tabItem {
+                Label("Image Feed", systemImage: "photo")
+            }
         }
     }
 }
