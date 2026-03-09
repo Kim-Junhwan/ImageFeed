@@ -27,8 +27,7 @@ struct ImageFeedView: View {
             ScrollView {
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
                     ForEach(viewModel.state.images) { image in
-                        Rectangle()
-                            .fill(.red)
+                        ImageFeedCell(image: image, imageDataRepository: imageDataRepository, onLikeTap: {})
                         .onAppear {
                             // 마지막 이미지 도달 시 다음 페이지 로딩
                             if image.id == viewModel.state.images.last?.id {

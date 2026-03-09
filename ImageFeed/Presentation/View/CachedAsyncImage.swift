@@ -108,8 +108,6 @@ final class ImageLoader: ObservableObject {
 
     func load(targetSize: CGSize) async {
         guard case .idle = loadState else { return }
-
-        // 1. UIImage 캐시 히트 → 디코딩 없이 즉시 반환 (objectWillChange #1)
         let cacheKey = url.absoluteString
         if let cached = ImageCache.shared.image(for: cacheKey) {
             loadState = .loaded(cached)
@@ -120,9 +118,6 @@ final class ImageLoader: ObservableObject {
 
         do {
             let data = try await imageDataRepository.loadImageData(url: url)
-            // 2. 표시 크기로 다운샘플 (백그라운드 스레드)
-            // Task.detached는 내부에 실제 suspension point가 없으면 Swift 런타임이
-            // 호출 스레드(메인)에서 inline 실행할 수 있으므로 GCD로 백그라운드를 명시적으로 보장한다.
             let scale = UIScreen.main.scale
             let uiImage: UIImage? = await withCheckedContinuation { continuation in
                 DispatchQueue.global(qos: .userInitiated).async {
@@ -131,16 +126,14 @@ final class ImageLoader: ObservableObject {
             }
 
             if let uiImage {
-                // 3. 결과를 UIImage 캐시에 저장 → 셀 재진입 시 재디코딩 생략
                 ImageCache.shared.store(uiImage, for: cacheKey)
                 loadState = .loaded(uiImage)  // objectWillChange #2
             } else {
                 loadState = .failed(ImageLoaderError.decodingFailed)
             }
         } catch {
-            loadState = .failed(error)  // objectWillChange #2
+            loadState = .failed(error)
         }
-        // isLoading = false 제거 → objectWillChange 추가 발행 없음
     }
 }
 
