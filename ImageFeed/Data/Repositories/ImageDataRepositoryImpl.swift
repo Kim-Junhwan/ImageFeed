@@ -7,7 +7,7 @@
 
 import Foundation
 
-final class ImageDataRepositoryImpl: ImageDataRepository {
+final class ImageDataRepositoryImpl: ImageDataRepository, @unchecked Sendable {
     
     private let memoryCache = NSCache<NSString, NSData>()
     private let diskCache = DiskCacheManager()

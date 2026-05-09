@@ -13,7 +13,7 @@ import ImageIO
 // MARK: - ImageCache
 /// 디코딩·다운샘플된 UIImage를 캐싱하는 프레젠테이션 레이어 캐시.
 /// 셀이 LazyVGrid에서 재진입할 때 재디코딩 없이 즉시 표시할 수 있다.
-final class ImageCache {
+nonisolated final class ImageCache: @unchecked Sendable {
     static let shared = ImageCache()
 
     private let cache = NSCache<NSString, UIImage>()
@@ -75,8 +75,8 @@ struct CachedAsyncImage: View {
                     })
             }
         }
-        .task {
-            await loader.load(targetSize: targetSize)
+        .onAppear {
+            loader.load(targetSize: targetSize)
         }
     }
 }
@@ -106,34 +106,37 @@ final class ImageLoader: ObservableObject {
         self.imageDataRepository = imageDataRepository
     }
 
-    func load(targetSize: CGSize) async {
+    func load(targetSize: CGSize) {
         guard case .idle = loadState else { return }
-        let cacheKey = url.absoluteString
-        if let cached = ImageCache.shared.image(for: cacheKey) {
-            loadState = .loaded(cached)
-            return
-        }
+        let scale = UIScreen.main.scale
+        Task.detached {
+            let cacheKey = self.url.absoluteString
+            if let cached = ImageCache.shared.image(for: cacheKey) {
+                await self.updateState(.loaded(cached))
+                return
+            }
 
-        loadState = .loading  // objectWillChange #1
+            await self.updateState(.loading) // objectWillChange #1
 
-        do {
-            let data = try await imageDataRepository.loadImageData(url: url)
-            let scale = UIScreen.main.scale
-            let uiImage: UIImage? = await withCheckedContinuation { continuation in
-                DispatchQueue.global(qos: .userInitiated).async {
-                    continuation.resume(returning: downsampledImage(data: data, targetSize: targetSize, scale: scale))
+            do {
+                let data = try await self.imageDataRepository.loadImageData(url: self.url)
+                let uiImage: UIImage? = downsampledImage(data: data, targetSize: targetSize, scale: scale)
+
+                if let uiImage {
+                    ImageCache.shared.store(uiImage, for: cacheKey)
+                    await self.updateState(.loaded(uiImage))  // objectWillChange #2
+                } else {
+                    await self.updateState(.failed(ImageLoaderError.decodingFailed))
                 }
+            } catch {
+                await self.updateState(.failed(error))
             }
-
-            if let uiImage {
-                ImageCache.shared.store(uiImage, for: cacheKey)
-                loadState = .loaded(uiImage)  // objectWillChange #2
-            } else {
-                loadState = .failed(ImageLoaderError.decodingFailed)
-            }
-        } catch {
-            loadState = .failed(error)
         }
+    }
+    
+    @MainActor
+    private func updateState(_ state: LoadState) {
+        loadState = state
     }
 }
 
@@ -141,8 +144,7 @@ final class ImageLoader: ObservableObject {
 /// ImageIO를 사용해 표시 크기로 직접 디코딩한다.
 /// UIImage(data:)와 달리 전체 해상도 버퍼를 생성하지 않으므로
 /// 메모리 사용량과 GPU 텍스처 업로드 비용을 대폭 줄인다.
-private func downsampledImage(data: Data, targetSize: CGSize, scale: CGFloat) -> UIImage? {
-    dispatchPrecondition(condition: .notOnQueue(.main))
+nonisolated private func downsampledImage(data: Data, targetSize: CGSize, scale: CGFloat) -> UIImage? {
     assert(!Thread.isMainThread)
     let maxPixelSize = max(targetSize.width, targetSize.height) * scale
     let sourceOptions = [kCGImageSourceShouldCache: false] as CFDictionary

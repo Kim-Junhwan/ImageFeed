@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol ImageDataRepository {
+protocol ImageDataRepository: Sendable {
     func loadImageData(url: URL) async throws -> Data
     func clear() async
 }

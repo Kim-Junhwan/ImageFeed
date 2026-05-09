@@ -53,13 +53,17 @@ final actor DiskCacheManager {
         }
     }
 
-    func load(key: String) throws -> Data? {
+    func load(key: String) async throws -> Data? {
         let fileUrl = cacheDirectory.appendingPathComponent(toSafeFileName(key), conformingTo: .data)
         guard fileManager.fileExists(atPath: fileUrl.path()) else { return nil }
 
         // 캐시 접근 시간 업데이트
         try? fileManager.setAttributes([.modificationDate: Date()], ofItemAtPath: fileUrl.path())
-        return try Data(contentsOf: fileUrl)
+
+        // blocking I/O를 actor 외부에서 실행하여 직렬화 병목 해소
+        return try await Task.detached {
+            try Data(contentsOf: fileUrl)
+        }.value
     }
 
     func clear() throws {
