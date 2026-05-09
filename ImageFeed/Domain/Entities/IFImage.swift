@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct IFImage: Identifiable, Withable {
+struct IFImage: Identifiable, Withable, Equatable {
     let id: String
     let url: URL
     let thumbnailUrl: URL

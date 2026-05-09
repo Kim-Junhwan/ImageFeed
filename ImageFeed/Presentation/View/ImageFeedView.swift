@@ -23,14 +23,16 @@ struct ImageFeedView: View {
     }
     
     var body: some View {
+        let images = viewModel.state.images
+        let lastImageId = images.last?.id
         NavigationView {
             ScrollView {
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
-                    ForEach(viewModel.state.images) { image in
+                    ForEach(images) { image in
                         ImageFeedCell(image: image, imageDataRepository: imageDataRepository, onLikeTap: {})
+                            .equatable()
                         .onAppear {
-                            // 마지막 이미지 도달 시 다음 페이지 로딩
-                            if image.id == viewModel.state.images.last?.id {
+                            if image.id == lastImageId {
                                 viewModel.trigger(.loadNextPage)
                             }
                         }
@@ -38,7 +40,7 @@ struct ImageFeedView: View {
                 }
                 .padding(.horizontal, 8)
 
-                LoadingIndicatorView(viewModel: viewModel)
+                LoadingIndicatorView(isLoading: viewModel.isLoading)
             }
             .navigationTitle("Image Feed")
             .refreshable {
@@ -67,10 +69,10 @@ struct ImageFeedView: View {
 
 // MARK: - LoadingIndicatorView
 private struct LoadingIndicatorView: View {
-    let viewModel: ImageFeedViewModel
+    let isLoading: Bool
 
     var body: some View {
-        if viewModel.isLoading {
+        if isLoading {
             ProgressView()
                 .padding()
         }
@@ -78,11 +80,15 @@ private struct LoadingIndicatorView: View {
 }
 
 // MARK: - ImageFeedCell
-struct ImageFeedCell: View {
+struct ImageFeedCell: View, Equatable {
     let image: IFImage
     let imageDataRepository: ImageDataRepository
     let onLikeTap: () -> Void
-    
+
+    static func == (lhs: ImageFeedCell, rhs: ImageFeedCell) -> Bool {
+        lhs.image == rhs.image
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             // 이미지
