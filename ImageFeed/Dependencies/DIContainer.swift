@@ -7,6 +7,7 @@
 
 import Foundation
 
+@MainActor
 final class DIContainer {
     // Singletons
     private let apiService: UnsplashAPIService

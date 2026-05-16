@@ -29,6 +29,7 @@ extension enumDescribable {
 }
 
 // MARK: - 2. Base Class (@Observable + IF Naming)
+@MainActor
 @Observable
 class BaseViewModel<IFIntent, IFState, IFEffect>: MVIContract
 where IFIntent: enumDescribable, IFState: CustomStringConvertible & Withable , IFEffect: enumDescribable {
@@ -44,14 +45,14 @@ where IFIntent: enumDescribable, IFState: CustomStringConvertible & Withable , I
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "App", category: "ViewModel")
     
     var isLoading: Bool = false
-    private var managedTasks: [Task<Void, Never>] = []
+    private let taskBag: TaskBag = .init()
 
     init(initialState: IFState) {
         self.state = initialState
     }
 
     deinit {
-        managedTasks.forEach { $0.cancel() }
+        taskBag.cancelAll()
     }
 
     func trigger(_ intent: IFIntent) {
@@ -80,7 +81,23 @@ where IFIntent: enumDescribable, IFState: CustomStringConvertible & Withable , I
             await action()
         }
         if cancellable {
-            managedTasks.append(task)
+            taskBag.add(task)
+        }
+    }
+}
+
+private final class TaskBag: @unchecked Sendable {
+    private let lock = NSRecursiveLock()
+    private var tasks: [Task<Void, Never>] = []
+
+    func add(_ task: Task<Void, Never>) {
+        lock.withLock { tasks.append(task) }
+    }
+
+    func cancelAll() {
+        lock.withLock {
+            tasks.forEach { $0.cancel() }
+            tasks.removeAll()
         }
     }
 }

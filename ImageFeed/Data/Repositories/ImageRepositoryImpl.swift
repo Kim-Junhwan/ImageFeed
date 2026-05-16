@@ -16,8 +16,6 @@ final class ImageRepositoryImpl: ImageRepository {
     }
     
     func fetchImages(page: Int) async throws -> [IFImage] {
-        return try await Task.detached {
-            try await self.apiService.fetchImages(page: page).map { $0.toEntity() }.compactMap { $0 }
-        }.value
+        return try await apiService.fetchImages(page: page).map { $0.toEntity() }.compactMap { $0 }
     }
 }
