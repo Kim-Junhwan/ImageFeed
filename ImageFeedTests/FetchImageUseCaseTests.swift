@@ -5,31 +5,63 @@
 //  Created by JunHwan Kims on 5/16/26.
 //
 
-import XCTest
+import Testing
+import Foundation
+@testable import ImageFeed
 
-final class FetchImageUseCaseTests: XCTestCase {
+enum TestError: Error {
+    case fetchImageError
+}
 
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-    }
-
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-    }
-
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
-    }
-
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
+class MockImageRepository: ImageRepository {
+    
+    var isSuccess: Bool = true
+    var stubImages: [IFImage] = []
+    var reqPage: Int = -1
+    
+    func fetchImages(page: Int) async throws -> [IFImage] {
+        reqPage = page
+        if isSuccess {
+            return stubImages
+        } else {
+            throw TestError.fetchImageError
         }
     }
+    
+    func setStubImage(_ images: [IFImage]) {
+        self.stubImages = images
+    }
+}
 
+
+struct FetchImageUseCaseTests {
+    
+    let mock = MockImageRepository()
+    
+    func makeImage() -> IFImage {
+        return IFImage(id: UUID().uuidString, url: URL(string: "test")!, thumbnailUrl: URL(string: "test")!, width: 0, height: 0, author: "", createdAt: Date(), likesCount: 0, isLiked: false)
+    }
+    
+    func makeSut() -> FetchImageUseCase {
+        return FetchImageUseCase(imageRepository: mock)
+    }
+    
+    @Test func fetchImageSuccessTest() async {
+        let sut = makeSut()
+        mock.isSuccess = true
+        mock.setStubImage([makeImage()])
+        
+        let result = try? await sut.excute(page: 0)
+        #expect(mock.reqPage == 0)
+        #expect(result?.count == 1)
+    }
+    
+    @Test func fetchImageFailTest() async {
+        let sut = makeSut()
+        mock.isSuccess = false
+        await #expect(throws: TestError.fetchImageError) {
+            try await sut.excute(page: 0)
+        }
+        #expect(mock.reqPage == 0)
+    }
 }

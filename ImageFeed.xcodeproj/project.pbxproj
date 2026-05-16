@@ -29,6 +29,13 @@
 			);
 			target = 8F1E02622F458DC700BD5E76 /* ImageFeed */;
 		};
+		8F3C01332FB82781004AF2DF /* Exceptions for "ImageFeed" folder in "ImageFeedTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Util/Withable.swift,
+			);
+			target = 8F99F2D02F5EB818007BAC95 /* ImageFeedTests */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -36,6 +43,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				8F1E02DE2F4C901900BD5E76 /* Exceptions for "ImageFeed" folder in "ImageFeed" target */,
+				8F3C01332FB82781004AF2DF /* Exceptions for "ImageFeed" folder in "ImageFeedTests" target */,
 			);
 			path = ImageFeed;
 			sourceTree = "<group>";
@@ -364,7 +372,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
@@ -398,7 +406,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
