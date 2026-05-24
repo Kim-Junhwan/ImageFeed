@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct ImageFeedState: CustomStringConvertible, Withable {
+struct ImageFeedState: CustomStringConvertible, Withable, Sendable{
     var images: [IFImage] = []
     var isLoading: Bool = false
     
